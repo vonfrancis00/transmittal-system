@@ -1,8 +1,9 @@
 import axios from "axios";
 
-export default axios.create({
-  baseURL:
-    import.meta.env.MODE === "development"
-      ? "http://localhost:5000/api"
-      : "https://transmittal-api.onrender.com/api"
+const api = axios.create({
+  baseURL: import.meta.env.DEV
+    ? "http://localhost:5000/api"
+    : "https://transmittal-system.onrender.com/api"
 });
+
+export default api;
