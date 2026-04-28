@@ -4,5 +4,5 @@ export default axios.create({
   baseURL:
     import.meta.env.MODE === "development"
       ? "http://localhost:5000/api"
-      : "/api"
+      : "https://transmittal-api.onrender.com/api"
 });
