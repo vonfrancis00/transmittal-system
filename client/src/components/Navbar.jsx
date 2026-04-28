@@ -12,7 +12,7 @@ export default function Navbar() {
   const navigate = useNavigate();
 
   const navItems = [
-    { name: "Home", path: "/dashboard" },
+    { name: "Home", path: "/home" },
     { name: "Create Transmittal", path: "/create" },
     { name: "Official Records", path: "/records" },
   ];

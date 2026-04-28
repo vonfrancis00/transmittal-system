@@ -29,7 +29,7 @@ export default function App() {
 
               <div className="p-6">
                 <Routes>
-                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/home" element={<Dashboard />} />
                   <Route path="/create" element={<CreateTransmittal />} />
                   <Route path="/records" element={<Records />} />
                 </Routes>

@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import {
   Search,
-  Eye,
   Edit3,
   Trash2,
   Filter,
@@ -20,7 +19,12 @@ export default function Table() {
   const [data, setData] = useState([]);
   const [deleteRow, setDeleteRow] = useState(null);
 
-  /* LOAD DATABASE RECORDS */
+  const [deleting, setDeleting] = useState(false);
+  const [deleteSuccess, setDeleteSuccess] = useState(false);
+
+  /* ADDED */
+  const totalRecords = data.length;
+
   useEffect(() => {
     fetchRecords();
   }, []);
@@ -28,8 +32,6 @@ export default function Table() {
   const fetchRecords = async () => {
     try {
       const res = await api.get("/transmittals");
-
-      console.log("Fetched:", res.data);
 
       if (Array.isArray(res.data)) {
         setData(res.data);
@@ -42,37 +44,40 @@ export default function Table() {
     }
   };
 
-  /* OPEN DELETE MODAL */
   const handleDelete = (row) => {
     setDeleteRow(row);
   };
 
-  /* CONFIRM DELETE */
-// REPLACE ONLY YOUR confirmDelete FUNCTION WITH THIS
-const confirmDelete = async () => {
-  if (!deleteRow) return;
+  const confirmDelete = async () => {
+    if (!deleteRow) return;
 
-  try {
-    const res = await api.delete(`/transmittals/${deleteRow._id}`);
+    try {
+      setDeleting(true);
 
-    if (res.status === 200) {
-      // refresh records from database
-      await fetchRecords();
+      const res = await api.delete(`/transmittals/${deleteRow._id}`);
 
-      setDeleteRow(null);
-      alert("Record deleted successfully.");
-    } else {
-      alert("Delete failed.");
+      if (res.status === 200) {
+        await fetchRecords();
+
+        setDeleteRow(null);
+        setDeleting(false);
+        setDeleteSuccess(true);
+
+        setTimeout(() => {
+          setDeleteSuccess(false);
+        }, 1800);
+      }
+    } catch (error) {
+      setDeleting(false);
+
+      console.error(
+        "Delete Error:",
+        error.response?.data || error.message
+      );
+
+      alert("Failed to delete record.");
     }
-  } catch (error) {
-    console.error(
-      "Delete Error:",
-      error.response?.data || error.message
-    );
-
-    alert("Failed to delete record.");
-  }
-};
+  };
 
   const handlePreview = (row) => {
     setSelectedRow(row);
@@ -82,34 +87,45 @@ const confirmDelete = async () => {
   const statusStyle = {
     Released: "text-emerald-700 bg-emerald-50 border-emerald-200",
     Pending: "text-amber-700 bg-amber-50 border-amber-200",
-    Draft: "text-slate-600 bg-slate-50 border-slate-200",
+    Draft: "text-slate-600 bg-slate-50 border-slate-200"
   };
 
   const formatDate = (date) => {
     if (!date) return "-";
 
-    return new Date(date).toLocaleDateString("en-US", {
-      day: "2-digit",
-      month: "long",
-      year: "numeric",
-    }).toUpperCase();
+    return new Date(date)
+      .toLocaleDateString("en-US", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric"
+      })
+      .toUpperCase();
   };
 
   return (
     <>
       <div className="max-w-7xl mx-auto bg-white border border-slate-300 shadow-xl overflow-hidden rounded-sm">
 
-        {/* Top Status Bar */}
+        {/* TOP BAR */}
         <div className="bg-slate-900 px-6 py-2 flex justify-between items-center">
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">
-              <Database size={12} className="text-blue-400" /> Server: PH-MANILA-01
+              <Database size={12} className="text-blue-400" />
+              Server: PH-MANILA-01
             </span>
 
             <span className="h-3 w-[1px] bg-slate-700"></span>
 
             <span className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">
-              <ShieldCheck size={12} className="text-emerald-400" /> Encryption: AES-256
+              <ShieldCheck size={12} className="text-emerald-400" />
+              Encryption: AES-256
+            </span>
+
+            {/* ADDED TOTAL COUNT */}
+            <span className="h-3 w-[1px] bg-slate-700"></span>
+
+            <span className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">
+              Total Records: {totalRecords}
             </span>
           </div>
 
@@ -118,7 +134,7 @@ const confirmDelete = async () => {
           </p>
         </div>
 
-        {/* Header */}
+        {/* HEADER */}
         <div className="px-8 py-10 bg-white border-b border-slate-200">
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8">
 
@@ -132,32 +148,10 @@ const confirmDelete = async () => {
               </p>
             </div>
 
-            <div className="flex items-center gap-3 w-full lg:w-auto">
-              <div className="relative flex-grow lg:flex-grow-0">
-                <Search
-                  size={16}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-                />
-
-                <input
-                  type="text"
-                  placeholder="SEARCH BY REFERENCE..."
-                  className="w-full lg:w-80 bg-slate-50 border border-slate-200 rounded-sm pl-10 pr-4 py-3 text-[11px] font-bold tracking-widest uppercase focus:bg-white focus:ring-1 focus:ring-slate-900 outline-none transition-all"
-                />
-              </div>
-
-              <button className="p-3 border border-slate-200 rounded-sm hover:bg-slate-50 transition-colors text-slate-600">
-                <Filter size={18} />
-              </button>
-
-              <button className="flex items-center gap-2 bg-slate-900 text-white px-6 py-3 rounded-sm text-[11px] font-bold uppercase tracking-widest hover:bg-blue-800 transition shadow-lg shadow-slate-200">
-                <Download size={14} /> Export CSV
-              </button>
-            </div>
           </div>
         </div>
 
-        {/* Table */}
+        {/* TABLE */}
         <div className="overflow-x-auto">
           <table className="w-full border-collapse">
             <thead>
@@ -171,7 +165,7 @@ const confirmDelete = async () => {
                 </th>
 
                 <th className="px-8 py-5 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
-                  Origin Office
+                  Recipient
                 </th>
 
                 <th className="px-8 py-5 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
@@ -199,19 +193,13 @@ const confirmDelete = async () => {
                   </td>
 
                   <td className="px-8 py-5">
-                    <div className="flex items-center gap-3">
-                      <div className="h-8 w-1 bg-slate-200 group-hover:bg-blue-600 transition-colors"></div>
-
-                      <span className="text-xs font-bold text-slate-800 uppercase leading-tight tracking-tight">
-                        {row.subject}
-                      </span>
-                    </div>
+                    <span className="text-xs font-bold text-slate-800 uppercase">
+                      {row.subject}
+                    </span>
                   </td>
 
-                  <td className="px-8 py-5">
-                    <span className="text-[10px] font-bold text-slate-500 uppercase">
-                      {row.from || "N/A"} UNIT
-                    </span>
+                  <td className="px-8 py-5 text-[10px] font-bold text-slate-500 uppercase">
+                    {row.to || "N/A"}
                   </td>
 
                   <td className="px-8 py-5 text-[11px] font-bold text-slate-600 uppercase">
@@ -220,9 +208,7 @@ const confirmDelete = async () => {
 
                   <td className="px-8 py-5 text-center">
                     <span
-                      className={`inline-block px-3 py-1 rounded-sm border text-[9px] font-black uppercase tracking-widest ${
-                        statusStyle["Released"]
-                      }`}
+                      className={`inline-block px-3 py-1 rounded-sm border text-[9px] font-black uppercase tracking-widest ${statusStyle["Released"]}`}
                     >
                       Released
                     </span>
@@ -230,6 +216,7 @@ const confirmDelete = async () => {
 
                   <td className="px-8 py-5">
                     <div className="flex justify-end items-center gap-1">
+
                       <button
                         type="button"
                         onClick={() => handlePreview(row)}
@@ -238,19 +225,14 @@ const confirmDelete = async () => {
                         <FileText size={14} /> Preview
                       </button>
 
-                      <div className="w-[1px] h-6 bg-slate-200 mx-2"></div>
-
-                      <button className="p-2 text-slate-400 hover:text-amber-600 transition-colors">
-                        <Edit3 size={16} />
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(row)}
+                        className="p-2 text-slate-400 hover:text-red-600 transition-colors"
+                      >
+                        <Trash2 size={16} />
                       </button>
 
-                      <button
-                          type="button"
-                          onClick={() => handleDelete(row)}
-                          className="p-2 text-slate-400 hover:text-red-600 transition-colors"
-                        >
-                          <Trash2 size={16} />
-                        </button>
                     </div>
                   </td>
                 </tr>
@@ -270,52 +252,13 @@ const confirmDelete = async () => {
           </table>
         </div>
 
+        {/* FOOTER */}
+        <div className="px-8 py-4 bg-slate-50 border-t border-slate-200 flex justify-between items-center">
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+            Showing {data.length} entries | Total Database Records: {totalRecords}
+          </p>
+        </div>
       </div>
-      {deleteRow && (
-  <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-4">
-    <div className="bg-white w-full max-w-md rounded-sm shadow-2xl border border-slate-200">
-
-      <div className="px-6 py-5 border-b border-slate-200">
-        <h2 className="text-lg font-black text-slate-900 uppercase tracking-tight">
-          Confirm Delete
-        </h2>
-
-        <p className="text-xs text-slate-500 mt-2 uppercase tracking-wider">
-          This action cannot be undone.
-        </p>
-      </div>
-
-      <div className="px-6 py-6">
-        <p className="text-sm font-semibold text-slate-700 uppercase">
-          Delete record:
-        </p>
-
-        <p className="text-sm font-black text-red-700 mt-2 break-all">
-          {deleteRow.ref}
-        </p>
-      </div>
-
-      <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-3">
-        <button
-          type="button"
-          onClick={() => setDeleteRow(null)}
-          className="px-4 py-2 border border-slate-300 text-slate-700 text-xs font-bold uppercase tracking-widest hover:bg-white"
-        >
-          Cancel
-        </button>
-
-        <button
-          type="button"
-          onClick={confirmDelete}
-          className="px-4 py-2 bg-red-600 text-white text-xs font-bold uppercase tracking-widest hover:bg-red-700"
-        >
-          Delete
-        </button>
-      </div>
-
-    </div>
-  </div>
-)}
 
       <PreviewModal
         isOpen={openPreview}

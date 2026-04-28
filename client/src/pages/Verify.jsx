@@ -278,10 +278,10 @@ export default function Verify() {
                             </p>
                           </div>
 
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-12 border-t border-slate-200 pt-6 font-sans">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-12 border-t border-slate-200 pt-6 font-sans uppercase">
                             <Detail label="Reference No." value={result.data.ref} />
                             <Detail label="Date of Issuance" value={result.data.date} />
-                            <Detail label="Originating Office" value={result.data.from} />
+                            <Detail label="From" value={result.data.from} />
                             <Detail label="Intended Recipient" value={result.data.to} />
 
                             <div className="col-span-full">

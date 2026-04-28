@@ -27,7 +27,7 @@ export default function Login() {
     e.preventDefault();
     // DEMO LOGIN
     if (form.username === "admin" && form.password === "admin123") {
-      navigate("/dashboard");
+      navigate("/home");
     } else {
       alert("Unauthorized Access Attempt: Invalid credentials.");
     }
