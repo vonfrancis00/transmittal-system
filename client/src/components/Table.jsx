@@ -48,22 +48,31 @@ export default function Table() {
   };
 
   /* CONFIRM DELETE */
-  const confirmDelete = async () => {
-    if (!deleteRow) return;
+// REPLACE ONLY YOUR confirmDelete FUNCTION WITH THIS
+const confirmDelete = async () => {
+  if (!deleteRow) return;
 
-    try {
-      await api.delete(`/transmittals/${deleteRow._id}`);
+  try {
+    const res = await api.delete(`/transmittals/${deleteRow._id}`);
 
-      setData((prev) =>
-        prev.filter((item) => item._id !== deleteRow._id)
-      );
+    if (res.status === 200) {
+      // refresh records from database
+      await fetchRecords();
 
       setDeleteRow(null);
-    } catch (error) {
-      console.error("Delete Error:", error.response?.data || error.message);
-      alert("Failed to delete record.");
+      alert("Record deleted successfully.");
+    } else {
+      alert("Delete failed.");
     }
-  };
+  } catch (error) {
+    console.error(
+      "Delete Error:",
+      error.response?.data || error.message
+    );
+
+    alert("Failed to delete record.");
+  }
+};
 
   const handlePreview = (row) => {
     setSelectedRow(row);
