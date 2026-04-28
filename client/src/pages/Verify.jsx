@@ -12,6 +12,7 @@ import {
   Stamp
 } from "lucide-react";
 import { Html5Qrcode } from "html5-qrcode";
+import api from "../services/api";
 
 export default function Verify() {
   const [code, setCode] = useState("");
@@ -23,30 +24,44 @@ export default function Verify() {
 
   const extractCode = (raw) => {
     let text = raw?.trim();
+
     try {
       const parsed = JSON.parse(text);
+
       if (parsed.ref) return parsed.ref;
       if (parsed.id) return parsed.id;
     } catch {}
-    if (text.includes("/verify/")) return text.split("/verify/").pop().trim();
+
+    if (text.includes("/verify/")) {
+      return text.split("/verify/").pop().trim();
+    }
+
     return text;
   };
 
   const verifyDocument = async (manualCode = code) => {
     const finalCode = extractCode(manualCode);
+
     if (!finalCode) return;
 
     try {
       setLoading(true);
       setResult(null);
 
-      const res = await fetch(
-        `http://localhost:5000/api/transmittals/verify/${encodeURIComponent(finalCode)}`
+      const res = await api.get(
+        `/transmittals/verify/${encodeURIComponent(finalCode)}`
       );
 
-      const data = await res.json();
-      setResult({ found: res.ok, data });
-    } catch {
+      setResult({
+        found: true,
+        data: res.data,
+      });
+    } catch (error) {
+      console.error(
+        "Verify Error:",
+        error.response?.data || error.message
+      );
+
       setResult({ found: false });
     } finally {
       setLoading(false);
@@ -62,6 +77,7 @@ export default function Verify() {
         scannerRef.current = scanner;
 
         const devices = await Html5Qrcode.getCameras();
+
         if (!devices.length || !mounted) return;
 
         await scanner.start(
@@ -96,6 +112,7 @@ export default function Verify() {
       try {
         await scannerRef.current.stop();
       } catch {}
+
       scannerRef.current = null;
     }
   };
@@ -141,6 +158,7 @@ export default function Verify() {
               <span className="flex items-center gap-1">
                 <Lock size={12} /> Secure Official Gateway
               </span>
+
               <span className="hidden md:inline border-l border-slate-700 pl-4 text-slate-400 text-[9px]">
                 Republic of the Philippines
               </span>
@@ -261,22 +279,10 @@ export default function Verify() {
                           </div>
 
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-12 border-t border-slate-200 pt-6 font-sans">
-                            <Detail
-                              label="Reference No."
-                              value={result.data.ref}
-                            />
-                            <Detail
-                              label="Date of Issuance"
-                              value={result.data.date}
-                            />
-                            <Detail
-                              label="Originating Office"
-                              value={result.data.from}
-                            />
-                            <Detail
-                              label="Intended Recipient"
-                              value={result.data.to}
-                            />
+                            <Detail label="Reference No." value={result.data.ref} />
+                            <Detail label="Date of Issuance" value={result.data.date} />
+                            <Detail label="Originating Office" value={result.data.from} />
+                            <Detail label="Intended Recipient" value={result.data.to} />
 
                             <div className="col-span-full">
                               <Detail
