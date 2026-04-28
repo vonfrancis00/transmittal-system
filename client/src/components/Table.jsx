@@ -231,6 +231,7 @@ const confirmDelete = async () => {
                   <td className="px-8 py-5">
                     <div className="flex justify-end items-center gap-1">
                       <button
+                        type="button"
                         onClick={() => handlePreview(row)}
                         className="flex items-center gap-2 px-3 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-700 hover:text-white transition-all rounded-sm text-[10px] font-bold uppercase tracking-tighter"
                       >
@@ -244,11 +245,12 @@ const confirmDelete = async () => {
                       </button>
 
                       <button
-                        onClick={() => handleDelete(row)}
-                        className="p-2 text-slate-400 hover:text-red-600 transition-colors"
-                      >
-                        <Trash2 size={16} />
-                      </button>
+                          type="button"
+                          onClick={() => handleDelete(row)}
+                          className="p-2 text-slate-400 hover:text-red-600 transition-colors"
+                        >
+                          <Trash2 size={16} />
+                        </button>
                     </div>
                   </td>
                 </tr>
