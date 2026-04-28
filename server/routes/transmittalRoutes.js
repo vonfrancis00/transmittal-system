@@ -5,8 +5,6 @@ const Transmittal = require("../models/Transmittal");
 /* CREATE */
 router.post("/", async (req, res) => {
   try {
-    console.log("Incoming body:", req.body);
-
     const newRecord = new Transmittal({
       ref: req.body.ref,
       to: req.body.to,
@@ -20,14 +18,13 @@ router.post("/", async (req, res) => {
 
     const saved = await newRecord.save();
 
-    console.log("Saved record:", saved);
-
     res.status(201).json({
       message: "Saved successfully",
       data: saved,
     });
   } catch (error) {
     console.error("SAVE ERROR:", error);
+
     res.status(500).json({
       message: error.message,
     });
@@ -36,18 +33,25 @@ router.post("/", async (req, res) => {
 
 /* GET ALL */
 router.get("/", async (req, res) => {
-  const data = await Transmittal.find().sort({ createdAt: -1 });
-  res.json(data);
+  try {
+    const data = await Transmittal.find().sort({ createdAt: -1 });
+    res.json(data);
+  } catch (error) {
+    console.error("FETCH ERROR:", error);
+
+    res.status(500).json({
+      message: error.message,
+    });
+  }
 });
 
-/* VERIFY DOCUMENT */
 /* VERIFY DOCUMENT */
 router.get("/verify/:code", async (req, res) => {
   try {
     const code = decodeURIComponent(req.params.code).trim();
 
     let record = await Transmittal.findOne({
-      ref: { $regex: `^${code}$`, $options: "i" }
+      ref: { $regex: `^${code}$`, $options: "i" },
     });
 
     if (!record && /^[0-9a-fA-F]{24}$/.test(code)) {

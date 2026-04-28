@@ -12,6 +12,7 @@ import {
   ShieldCheck
 } from "lucide-react";
 import PreviewModal from "../pages/PreviewModal";
+import api from "../services/api";
 
 export default function Table() {
   const [openPreview, setOpenPreview] = useState(false);
@@ -19,39 +20,39 @@ export default function Table() {
   const [data, setData] = useState([]);
   const [deleteRow, setDeleteRow] = useState(null);
 
-  // LOAD DATABASE RECORDS
+  /* LOAD DATABASE RECORDS */
   useEffect(() => {
     fetchRecords();
   }, []);
 
   const fetchRecords = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/transmittals");
-      const records = await res.json();
-      setData(records);
+      const res = await api.get("/transmittals");
+
+      console.log("Fetched:", res.data);
+
+      if (Array.isArray(res.data)) {
+        setData(res.data);
+      } else {
+        setData([]);
+      }
     } catch (error) {
-      console.error("Fetch Error:", error);
+      console.error("Fetch Error:", error.response?.data || error.message);
+      setData([]);
     }
   };
 
-  // OPEN DELETE MODAL
+  /* OPEN DELETE MODAL */
   const handleDelete = (row) => {
     setDeleteRow(row);
   };
 
-  // CONFIRM DELETE
+  /* CONFIRM DELETE */
   const confirmDelete = async () => {
     if (!deleteRow) return;
 
     try {
-      const res = await fetch(
-        `http://localhost:5000/api/transmittals/${deleteRow._id}`,
-        {
-          method: "DELETE",
-        }
-      );
-
-      if (!res.ok) throw new Error("Delete failed");
+      await api.delete(`/transmittals/${deleteRow._id}`);
 
       setData((prev) =>
         prev.filter((item) => item._id !== deleteRow._id)
@@ -59,7 +60,7 @@ export default function Table() {
 
       setDeleteRow(null);
     } catch (error) {
-      console.error("Delete Error:", error);
+      console.error("Delete Error:", error.response?.data || error.message);
       alert("Failed to delete record.");
     }
   };
@@ -77,6 +78,7 @@ export default function Table() {
 
   const formatDate = (date) => {
     if (!date) return "-";
+
     return new Date(date).toLocaleDateString("en-US", {
       day: "2-digit",
       month: "long",
@@ -123,7 +125,10 @@ export default function Table() {
 
             <div className="flex items-center gap-3 w-full lg:w-auto">
               <div className="relative flex-grow lg:flex-grow-0">
-                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <Search
+                  size={16}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                />
 
                 <input
                   type="text"
@@ -175,9 +180,11 @@ export default function Table() {
             </thead>
 
             <tbody className="divide-y divide-slate-100">
-              {data.map((row, i) => (
-                <tr key={row._id} className="group hover:bg-slate-50 transition-colors">
-
+              {data.map((row) => (
+                <tr
+                  key={row._id}
+                  className="group hover:bg-slate-50 transition-colors"
+                >
                   <td className="px-8 py-5 text-xs font-mono font-bold text-blue-800 tracking-tighter">
                     {row.ref}
                   </td>
@@ -214,7 +221,6 @@ export default function Table() {
 
                   <td className="px-8 py-5">
                     <div className="flex justify-end items-center gap-1">
-
                       <button
                         onClick={() => handlePreview(row)}
                         className="flex items-center gap-2 px-3 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-700 hover:text-white transition-all rounded-sm text-[10px] font-bold uppercase tracking-tighter"
@@ -234,16 +240,17 @@ export default function Table() {
                       >
                         <Trash2 size={16} />
                       </button>
-
                     </div>
                   </td>
-
                 </tr>
               ))}
 
               {data.length === 0 && (
                 <tr>
-                  <td colSpan="6" className="text-center py-10 text-slate-400 text-sm">
+                  <td
+                    colSpan="6"
+                    className="text-center py-10 text-slate-400 text-sm"
+                  >
                     No records found.
                   </td>
                 </tr>
@@ -252,80 +259,7 @@ export default function Table() {
           </table>
         </div>
 
-        {/* Footer */}
-        <div className="px-8 py-4 bg-slate-50 border-t border-slate-200 flex justify-between items-center">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-            Showing {data.length} entries
-          </p>
-
-          <div className="flex items-center gap-4">
-            <span className="text-[10px] font-bold text-slate-400 uppercase">
-              Page 1 of 1
-            </span>
-
-            <div className="flex gap-1">
-              <button
-                className="p-1 border border-slate-200 rounded hover:bg-white disabled:opacity-30"
-                disabled
-              >
-                <ChevronRight size={14} className="rotate-180" />
-              </button>
-
-              <button
-                className="p-1 border border-slate-200 rounded hover:bg-white"
-                disabled
-              >
-                <ChevronRight size={14} />
-              </button>
-            </div>
-          </div>
-        </div>
       </div>
-
-      {/* DELETE MODAL */}
-      {deleteRow && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-4">
-          <div className="bg-white w-full max-w-md rounded-sm shadow-2xl border border-slate-200">
-
-            <div className="px-6 py-5 border-b border-slate-200">
-              <h2 className="text-lg font-black text-slate-900 uppercase tracking-tight">
-                Confirm Delete
-              </h2>
-
-              <p className="text-xs text-slate-500 mt-2 uppercase tracking-wider">
-                This action cannot be undone.
-              </p>
-            </div>
-
-            <div className="px-6 py-6">
-              <p className="text-sm font-semibold text-slate-700 uppercase">
-                Delete record:
-              </p>
-
-              <p className="text-sm font-black text-red-700 mt-2 break-all">
-                {deleteRow.ref}
-              </p>
-            </div>
-
-            <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-3">
-              <button
-                onClick={() => setDeleteRow(null)}
-                className="px-4 py-2 border border-slate-300 text-slate-700 text-xs font-bold uppercase tracking-widest hover:bg-white"
-              >
-                Cancel
-              </button>
-
-              <button
-                onClick={confirmDelete}
-                className="px-4 py-2 bg-red-600 text-white text-xs font-bold uppercase tracking-widest hover:bg-red-700"
-              >
-                Delete
-              </button>
-            </div>
-
-          </div>
-        </div>
-      )}
 
       <PreviewModal
         isOpen={openPreview}

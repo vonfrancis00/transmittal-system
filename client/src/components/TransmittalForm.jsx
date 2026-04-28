@@ -1,12 +1,15 @@
 import { useState } from "react";
 import { Save, Eraser, FileText, Info, Shield } from "lucide-react";
+import api from "../services/api";
 
 export default function TransmittalForm() {
   const defaultFrom = "DESIDERIO R. APAG III, D.Eng., PCPE";
 
   const [form, setForm] = useState({
     to: "",
+    charge: "",
     from: defaultFrom,
+    position: "",
     subject: "",
     date: "",
     body: "",
@@ -16,24 +19,22 @@ export default function TransmittalForm() {
 
   /* GENERATE DOCUMENT ID */
   const generateDocumentId = () => {
-  const today = new Date();
+    const today = new Date();
 
-  const yyyy = today.getFullYear();
-  const mm = String(today.getMonth() + 1).padStart(2, "0");
-  const dd = String(today.getDate()).padStart(2, "0");
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, "0");
+    const dd = String(today.getDate()).padStart(2, "0");
 
-  /* CONTINUOUS RUNNING NUMBER */
-  const lastNumber = Number(
-    localStorage.getItem("transmittal-item-number") || "0"
-  );
+    const lastNumber = Number(
+      localStorage.getItem("transmittal-item-number") || "0"
+    );
 
-  const nextNumber = lastNumber + 1;
+    const nextNumber = lastNumber + 1;
 
-  /* PAD NUMBER */
-  const item = String(nextNumber).padStart(3, "0");
+    const item = String(nextNumber).padStart(3, "0");
 
-  return `${yyyy}${mm}${dd}-${item}`;
-};
+    return `${yyyy}${mm}${dd}-${item}`;
+  };
 
   /* KEEP SAME ID UNTIL SAVED */
   const [documentId, setDocumentId] = useState(() => {
@@ -48,10 +49,10 @@ export default function TransmittalForm() {
   });
 
   const handleChange = (e) => {
-    setForm({
-      ...form,
+    setForm((prev) => ({
+      ...prev,
       [e.target.name]: e.target.value,
-    });
+    }));
   };
 
   const resetForm = () => {
@@ -59,65 +60,61 @@ export default function TransmittalForm() {
       to: "",
       charge: "",
       from: defaultFrom,
+      position: "",
       subject: "",
       date: "",
       body: "",
     });
   };
 
-const saveForm = async () => {
-  try {
-    setLoading(true);
+  const saveForm = async () => {
+    try {
+      setLoading(true);
 
-    const payload = {
-      ref: documentId,
-      to: form.to,
-      charge: form.charge || "",
-      from: form.from,
-      position: form.position || "",
-      subject: form.subject,
-      date: form.date,
-      body: form.body,
-    };
+      const payload = {
+        ref: documentId,
+        to: form.to,
+        charge: form.charge,
+        from: form.from,
+        position: form.position,
+        subject: form.subject,
+        date: form.date,
+        body: form.body,
+      };
 
-    const response = await fetch("http://localhost:5000/api/transmittals", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
+      const response = await api.post("/transmittals", payload);
 
-    const data = await response.json();
+      if (response.status === 200 || response.status === 201) {
+        const usedNumber = documentId.split("-")[1];
 
-    if (response.ok) {
-      const usedNumber = documentId.split("-")[1];
+        localStorage.setItem(
+          "transmittal-item-number",
+          Number(usedNumber)
+        );
 
-      localStorage.setItem(
-        "transmittal-item-number",
-        Number(usedNumber)
+        localStorage.removeItem("pending-transmittal-id");
+
+        const nextId = generateDocumentId();
+
+        localStorage.setItem("pending-transmittal-id", nextId);
+        setDocumentId(nextId);
+
+        alert("Record committed to database successfully.");
+        resetForm();
+      } else {
+        alert("Failed to save.");
+      }
+    } catch (error) {
+      console.error(
+        "Save Error:",
+        error.response?.data || error.message
       );
 
-      localStorage.removeItem("pending-transmittal-id");
-
-      const nextId = generateDocumentId();
-
-      localStorage.setItem("pending-transmittal-id", nextId);
-      setDocumentId(nextId);
-
-      alert("Record committed to database successfully.");
-      resetForm();
-    } else {
-      console.log(data);
-      alert(data.message || "Failed to save.");
+      alert("Server connection failed.");
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    console.error(error);
-    alert("Server connection failed.");
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   return (
     <div className="max-w-6xl mx-auto flex flex-col lg:flex-row shadow-2xl border border-slate-300">
@@ -186,27 +183,26 @@ const saveForm = async () => {
           <div className="grid md:grid-cols-2 gap-10">
             {/* Recipient */}
             <div className="space-y-2">
-            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.15em]">
-              Recipient Office / Official
-            </label>
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.15em]">
+                Recipient Office / Official
+              </label>
 
-            <input
-              name="to"
-              value={form.to}
-              onChange={handleChange}
-              placeholder="e.g. Office of the Commissioner"
-              className="w-full border-b-2 border-slate-200 bg-transparent px-0 py-2 text-sm font-medium uppercase focus:border-blue-800 outline-none transition-colors"
-            />
+              <input
+                name="to"
+                value={form.to}
+                onChange={handleChange}
+                placeholder="e.g. Office of the Commissioner"
+                className="w-full border-b-2 border-slate-200 bg-transparent px-0 py-2 text-sm font-medium uppercase focus:border-blue-800 outline-none transition-colors"
+              />
 
-            {/* SECOND LINE */}
-            <input
-              name="charge"
-              value={form.charge}
-              onChange={handleChange}
-              placeholder="e.g. SUCs PRESIDENTS/OIC AND BOARD SECRETARIES UNDER MY CHARGE"
-              className="w-full border-b-2 border-slate-200 bg-transparent px-0 py-2 text-sm font-bold uppercase focus:border-blue-800 outline-none transition-colors"
-            />
-          </div>
+              <input
+                name="charge"
+                value={form.charge}
+                onChange={handleChange}
+                placeholder="e.g. SUCs PRESIDENTS/OIC AND BOARD SECRETARIES UNDER MY CHARGE"
+                className="w-full border-b-2 border-slate-200 bg-transparent px-0 py-2 text-sm font-bold uppercase focus:border-blue-800 outline-none transition-colors"
+              />
+            </div>
 
             {/* Originating Office */}
             <div className="space-y-2">
