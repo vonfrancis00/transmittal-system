@@ -271,6 +271,51 @@ const confirmDelete = async () => {
         </div>
 
       </div>
+      {deleteRow && (
+  <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-4">
+    <div className="bg-white w-full max-w-md rounded-sm shadow-2xl border border-slate-200">
+
+      <div className="px-6 py-5 border-b border-slate-200">
+        <h2 className="text-lg font-black text-slate-900 uppercase tracking-tight">
+          Confirm Delete
+        </h2>
+
+        <p className="text-xs text-slate-500 mt-2 uppercase tracking-wider">
+          This action cannot be undone.
+        </p>
+      </div>
+
+      <div className="px-6 py-6">
+        <p className="text-sm font-semibold text-slate-700 uppercase">
+          Delete record:
+        </p>
+
+        <p className="text-sm font-black text-red-700 mt-2 break-all">
+          {deleteRow.ref}
+        </p>
+      </div>
+
+      <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-3">
+        <button
+          type="button"
+          onClick={() => setDeleteRow(null)}
+          className="px-4 py-2 border border-slate-300 text-slate-700 text-xs font-bold uppercase tracking-widest hover:bg-white"
+        >
+          Cancel
+        </button>
+
+        <button
+          type="button"
+          onClick={confirmDelete}
+          className="px-4 py-2 bg-red-600 text-white text-xs font-bold uppercase tracking-widest hover:bg-red-700"
+        >
+          Delete
+        </button>
+      </div>
+
+    </div>
+  </div>
+)}
 
       <PreviewModal
         isOpen={openPreview}
