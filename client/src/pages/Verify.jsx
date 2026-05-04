@@ -148,15 +148,25 @@ export default function Verify() {
             display: none !important;
           }
         }
+        
+        #reader {
+          width: 100% !important;
+          border: none !important;
+        }
+        #reader video {
+          object-fit: cover !important;
+          border-radius: 8px;
+        }
       `}</style>
 
       <div className="min-h-screen bg-[#F1F5F9] font-serif selection:bg-blue-100">
         {/* INSTITUTIONAL TOP BAR */}
-        <div className="bg-[#0C1B33] text-white py-2 px-6 border-b-4 border-[#C5A059]">
+        <div className="bg-[#0C1B33] text-white py-2 px-4 md:px-6 border-b-4 border-[#C5A059]">
           <div className="max-w-5xl mx-auto flex justify-between items-center text-[10px] uppercase tracking-widest font-sans font-bold">
             <div className="flex items-center gap-4">
               <span className="flex items-center gap-1">
-                <Lock size={12} /> Secure Official Gateway
+                <Lock size={12} /> <span className="hidden xs:inline">Secure Official Gateway</span>
+                <span className="xs:hidden">Secure</span>
               </span>
 
               <span className="hidden md:inline border-l border-slate-700 pl-4 text-slate-400 text-[9px]">
@@ -168,53 +178,56 @@ export default function Verify() {
               to="/"
               className="hover:text-[#C5A059] transition flex items-center gap-2"
             >
-              <ArrowLeft size={12} /> Return to Main Portal
+              <ArrowLeft size={12} /> <span className="hidden sm:inline">Return to Main Portal</span>
+              <span className="sm:hidden">Back</span>
             </Link>
           </div>
         </div>
 
-        <div className="max-w-4xl mx-auto px-6 py-12">
+        <div className="max-w-4xl mx-auto px-4 md:px-6 py-8 md:py-12">
           {/* HEADER SECTION */}
-          <div className="text-center mb-10">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-white rounded-full shadow-md border border-slate-200 mb-4">
-              <Building2 size={40} className="text-[#0C1B33]" />
+          <div className="text-center mb-8 md:mb-10">
+            <div className="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 bg-white rounded-full shadow-md border border-slate-200 mb-4">
+              <Building2 size={32} className="text-[#0C1B33] md:size-[40px]" />
             </div>
 
-            <h1 className="text-3xl font-black text-[#0C1B33] uppercase tracking-tight mb-2">
+            <h1 className="text-2xl md:text-3xl font-black text-[#0C1B33] uppercase tracking-tight mb-2 px-2">
               Document Verification System
             </h1>
 
-            <p className="text-slate-500 font-sans text-sm max-w-md mx-auto leading-relaxed">
+            <p className="text-slate-500 font-sans text-xs md:text-sm max-w-md mx-auto leading-relaxed px-4">
               Verify the authenticity of CHED transmittal documents by entering
               the reference number or scanning the official QR code.
             </p>
           </div>
 
           <div className="bg-white shadow-2xl border-t-8 border-[#0C1B33] overflow-hidden">
-            <div className="p-10">
-              {/* SEARCH AREA */}
+            <div className="p-6 md:p-10">
+              {/* SEARCH AREA - Mobile Responsive Wrapper */}
               <div className="relative group">
                 <label className="block font-sans text-[11px] font-bold uppercase tracking-widest text-[#0C1B33] mb-3">
                   Input Reference Number
                 </label>
 
                 <div className="flex flex-col md:flex-row gap-0 ring-1 ring-slate-200 focus-within:ring-2 focus-within:ring-[#C5A059] transition-all">
-                  <div className="flex items-center px-4 bg-slate-50 border-r border-slate-200">
-                    <Search size={18} className="text-slate-400" />
-                  </div>
+                  <div className="flex flex-1">
+                    <div className="flex items-center px-4 bg-slate-50 border-r border-slate-200">
+                      <Search size={18} className="text-slate-400" />
+                    </div>
 
-                  <input
-                    type="text"
-                    placeholder="e.g., 2026-CHED-TR-008"
-                    value={code}
-                    onChange={(e) => setCode(e.target.value)}
-                    className="flex-1 px-5 py-4 font-sans text-lg outline-none placeholder:text-slate-300"
-                  />
+                    <input
+                      type="text"
+                      placeholder="e.g., 2026-CHED-TR-008"
+                      value={code}
+                      onChange={(e) => setCode(e.target.value)}
+                      className="flex-1 px-4 md:px-5 py-4 font-sans text-base md:text-lg outline-none placeholder:text-slate-300 min-w-0"
+                    />
+                  </div>
 
                   <button
                     onClick={() => verifyDocument()}
                     disabled={loading}
-                    className="bg-[#0C1B33] text-[#C5A059] px-10 py-4 font-sans font-bold uppercase text-xs tracking-[0.2em] hover:bg-[#162a4d] transition disabled:opacity-50"
+                    className="bg-[#0C1B33] text-[#C5A059] px-10 py-4 font-sans font-bold uppercase text-xs tracking-[0.2em] hover:bg-[#162a4d] transition disabled:opacity-50 w-full md:w-auto"
                   >
                     {loading ? "Verifying..." : "Validate"}
                   </button>
@@ -238,10 +251,10 @@ export default function Verify() {
 
               {/* QR SCANNER */}
               {openScanner && (
-                <div className="mt-8 bg-slate-50 p-6 border-2 border-dashed border-slate-200 rounded-lg">
+                <div className="mt-8 bg-slate-50 p-4 md:p-6 border-2 border-dashed border-slate-200 rounded-lg">
                   <div
                     id="reader"
-                    className="overflow-hidden rounded-md shadow-inner bg-black"
+                    className="overflow-hidden rounded-md shadow-inner bg-black aspect-square max-w-[350px] mx-auto"
                   ></div>
 
                   <button
@@ -253,32 +266,33 @@ export default function Verify() {
                 </div>
               )}
 
-              {/* RESULT */}
+              {/* RESULT SECTION */}
               {result && (
-                <div className="mt-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="mt-10 md:mt-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
                   {result.found ? (
-                    <div className="print-area relative border-2 border-[#C5A059] bg-[#FCFBF7] p-8 md:p-12 overflow-hidden">
-                      <div className="absolute right-[-20px] top-[-20px] opacity-[0.03] rotate-12">
+                    <div className="print-area relative border-2 border-[#C5A059] bg-[#FCFBF7] p-6 md:p-12 overflow-hidden">
+                      {/* Decorative Stamp for desktop */}
+                      <div className="absolute right-[-20px] top-[-20px] opacity-[0.03] rotate-12 hidden md:block">
                         <Stamp size={250} />
                       </div>
 
-                      <div className="relative z-10 flex flex-col md:flex-row gap-8 items-start">
-                        <div className="bg-emerald-100 p-4 rounded-full text-emerald-700">
-                          <ShieldCheck size={48} />
+                      <div className="relative z-10 flex flex-col md:flex-row gap-6 md:gap-8 items-center md:items-start text-center md:text-left">
+                        <div className="bg-emerald-100 p-4 rounded-full text-emerald-700 shrink-0">
+                          <ShieldCheck size={40} className="md:size-[48px]" />
                         </div>
 
-                        <div className="flex-1">
+                        <div className="flex-1 w-full">
                           <div className="mb-6">
-                            <h2 className="text-2xl font-bold text-[#0C1B33] mb-1">
+                            <h2 className="text-xl md:text-2xl font-bold text-[#0C1B33] mb-1">
                               Certification of Authenticity
                             </h2>
 
-                            <p className="text-emerald-700 font-sans text-xs font-bold uppercase tracking-widest">
+                            <p className="text-emerald-700 font-sans text-[10px] font-bold uppercase tracking-widest">
                               Official Record Validated
                             </p>
                           </div>
 
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-12 border-t border-slate-200 pt-6 font-sans uppercase">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-6 gap-x-12 border-t border-slate-200 pt-6 font-sans uppercase">
                             <Detail label="Reference No." value={result.data.ref} />
                             <Detail label="Date of Issuance" value={result.data.date} />
                             <Detail label="From" value={result.data.from} />
@@ -292,20 +306,20 @@ export default function Verify() {
                             </div>
                           </div>
 
-                          <div className="mt-10 flex gap-4">
+                          <div className="mt-10 flex flex-col sm:flex-row gap-3 md:gap-4">
                             <button
                               onClick={() => {
                                 setCode("");
                                 setResult(null);
                               }}
-                              className="bg-[#0C1B33] text-white px-6 py-3 font-sans text-[10px] font-bold uppercase tracking-widest hover:bg-slate-800 transition shadow-lg"
+                              className="w-full sm:w-auto bg-[#0C1B33] text-white px-6 py-4 sm:py-3 font-sans text-[10px] font-bold uppercase tracking-widest hover:bg-slate-800 transition shadow-lg"
                             >
                               New Verification
                             </button>
 
                             <button
                               onClick={() => window.print()}
-                              className="border border-[#0C1B33] text-[#0C1B33] px-6 py-3 font-sans text-[10px] font-bold uppercase tracking-widest hover:bg-slate-50 transition"
+                              className="w-full sm:w-auto border border-[#0C1B33] text-[#0C1B33] px-6 py-4 sm:py-3 font-sans text-[10px] font-bold uppercase tracking-widest hover:bg-slate-50 transition"
                             >
                               Print Validation
                             </button>
@@ -314,7 +328,7 @@ export default function Verify() {
                       </div>
                     </div>
                   ) : (
-                    <div className="border-2 border-red-200 bg-red-50 p-10 text-center">
+                    <div className="border-2 border-red-200 bg-red-50 p-8 md:p-10 text-center">
                       <div className="inline-flex bg-red-100 p-4 rounded-full text-red-600 mb-4">
                         <FileWarning size={32} />
                       </div>
@@ -334,7 +348,7 @@ export default function Verify() {
                           setCode("");
                           setResult(null);
                         }}
-                        className="bg-red-700 text-white px-8 py-3 font-sans text-[10px] font-bold uppercase tracking-widest hover:bg-red-800 transition"
+                        className="bg-red-700 text-white px-8 py-4 font-sans text-[10px] font-bold uppercase tracking-widest hover:bg-red-800 transition w-full sm:w-auto"
                       >
                         Try Again
                       </button>
@@ -344,13 +358,13 @@ export default function Verify() {
               )}
             </div>
 
-            <div className="bg-slate-50 px-10 py-6 border-t border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div className="bg-slate-50 px-6 md:px-10 py-6 border-t border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4">
               <div className="flex gap-6 items-center opacity-40 grayscale">
-                <div className="h-8 w-8 bg-slate-400 rounded-full"></div>
-                <div className="h-8 w-8 bg-slate-400 rounded-full"></div>
+                <div className="h-6 w-6 md:h-8 md:w-8 bg-slate-400 rounded-full"></div>
+                <div className="h-6 w-6 md:h-8 md:w-8 bg-slate-400 rounded-full"></div>
               </div>
 
-              <p className="text-[9px] font-sans font-bold uppercase tracking-widest text-slate-400 text-center md:text-right">
+              <p className="text-[9px] font-sans font-bold uppercase tracking-widest text-slate-400 text-center md:text-right leading-relaxed">
                 © 2026 Commission on Higher Education <br />
                 Secure Digital Governance Initiative
               </p>
@@ -364,11 +378,11 @@ export default function Verify() {
 
 function Detail({ label, value }) {
   return (
-    <div>
+    <div className="flex flex-col items-center md:items-start">
       <span className="block text-[10px] uppercase font-bold text-slate-400 tracking-tight mb-1">
         {label}
       </span>
-      <span className="text-slate-900 font-medium">{value || "N/A"}</span>
+      <span className="text-slate-900 font-medium text-center md:text-left">{value || "N/A"}</span>
     </div>
   );
 }
