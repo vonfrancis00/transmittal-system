@@ -53,7 +53,7 @@ export default function Navbar() {
 
             <div className="border-l border-slate-700 pl-3 md:pl-5">
               <h1 className="text-sm md:text-md font-bold tracking-tight leading-none uppercase">
-                Portal
+                Transmittal Portal
               </h1>
               <p className="text-[9px] md:text-[11px] text-slate-400 font-medium mt-1 uppercase tracking-wider line-clamp-1">
                 <span className="hidden sm:inline">Office of Commissioner</span> Desiderio R. Apag III

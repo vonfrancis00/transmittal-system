@@ -4,7 +4,7 @@ import {
   Trash2,
   Database,
   ShieldCheck,
-  MoreVertical
+  AlertTriangle
 } from "lucide-react";
 import PreviewModal from "../pages/PreviewModal";
 import api from "../services/api";
@@ -13,9 +13,12 @@ export default function Table() {
   const [openPreview, setOpenPreview] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
   const [data, setData] = useState([]);
-  const [deleteRow, setDeleteRow] = useState(null);
+  
+  // Confirmation Modal States
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [rowToDelete, setRowToDelete] = useState(null);
+  
   const [deleting, setDeleting] = useState(false);
-  const [deleteSuccess, setDeleteSuccess] = useState(false);
 
   const totalRecords = data.length;
 
@@ -33,7 +36,29 @@ export default function Table() {
     }
   };
 
-  const handleDelete = (row) => setDeleteRow(row);
+  // Step 1: Open Confirmation
+  const confirmDelete = (row) => {
+    setRowToDelete(row);
+    setIsDeleteModalOpen(true);
+  };
+
+  // Step 2: Execute API Call
+  const executeDelete = async () => {
+    if (!rowToDelete?._id) return;
+
+    try {
+      setDeleting(true);
+      await api.delete(`/transmittals/${rowToDelete._id}`);
+      // Refresh table after delete
+      fetchRecords();
+      setIsDeleteModalOpen(false);
+      setRowToDelete(null);
+    } catch (error) {
+      console.error("Delete Error:", error.response?.data || error.message);
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const handlePreview = (row) => {
     setSelectedRow(row);
@@ -89,7 +114,7 @@ export default function Table() {
           </p>
         </div>
 
-        {/* DESKTOP TABLE VIEW (Visible on lg and up) */}
+        {/* DESKTOP TABLE VIEW */}
         <div className="hidden lg:block overflow-x-auto">
           <table className="w-full border-collapse">
             <thead>
@@ -117,7 +142,7 @@ export default function Table() {
                       <button onClick={() => handlePreview(row)} className="px-3 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-700 hover:text-white transition-all rounded-sm text-[10px] font-bold uppercase">
                         Preview
                       </button>
-                      <button onClick={() => handleDelete(row)} className="p-2 text-slate-400 hover:text-red-600 transition-colors">
+                      <button onClick={() => confirmDelete(row)} className="p-2 text-slate-400 hover:text-red-600 transition-colors">
                         <Trash2 size={16} />
                       </button>
                     </div>
@@ -128,7 +153,7 @@ export default function Table() {
           </table>
         </div>
 
-        {/* MOBILE CARD VIEW (Visible below lg) */}
+        {/* MOBILE CARD VIEW */}
         <div className="lg:hidden divide-y divide-slate-200">
           {data.map((row) => (
             <div key={row._id} className="p-6 space-y-4 hover:bg-slate-50 active:bg-slate-100 transition-colors">
@@ -165,7 +190,7 @@ export default function Table() {
                   <FileText size={14} /> Preview Record
                 </button>
                 <button 
-                  onClick={() => handleDelete(row)}
+                  onClick={() => confirmDelete(row)}
                   className="px-4 flex items-center justify-center border border-slate-200 text-slate-400 rounded-sm"
                 >
                   <Trash2 size={16} />
@@ -187,6 +212,47 @@ export default function Table() {
           </p>
         </div>
       </div>
+
+      {/* DELETE CONFIRMATION MODAL */}
+      {isDeleteModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4">
+          <div 
+            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" 
+            onClick={() => !deleting && setIsDeleteModalOpen(false)}
+          />
+          <div className="relative bg-white w-full max-w-md rounded-sm shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200">
+            <div className="p-6">
+              <div className="flex items-center gap-3 text-red-600 mb-2">
+                <AlertTriangle size={20} />
+                <h2 className="text-lg font-black uppercase tracking-tight text-slate-900">
+                  Confirm Deletion
+                </h2>
+              </div>
+              <p className="text-xs text-slate-500 font-bold leading-relaxed uppercase tracking-wide">
+                Are you sure you want to delete reference: <span className="text-blue-700 font-mono underline">{rowToDelete?.ref}</span>? 
+                This action is permanent and cannot be undone.
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-2 p-4 bg-slate-50 border-t border-slate-200">
+              <button
+                disabled={deleting}
+                onClick={executeDelete}
+                className="flex-1 order-2 sm:order-1 py-3 bg-red-600 hover:bg-red-700 disabled:bg-red-300 text-white text-[10px] font-black uppercase tracking-widest transition-colors rounded-sm shadow-md"
+              >
+                {deleting ? "Processing..." : "Confirm Delete"}
+              </button>
+              <button
+                disabled={deleting}
+                onClick={() => setIsDeleteModalOpen(false)}
+                className="flex-1 order-1 sm:order-2 py-3 bg-white border border-slate-300 text-slate-600 text-[10px] font-black uppercase tracking-widest hover:bg-slate-100 transition-colors rounded-sm"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <PreviewModal
         isOpen={openPreview}
