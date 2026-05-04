@@ -11,6 +11,15 @@ export default function PreviewModal({ isOpen, onClose, data }) {
   const row = data || {};
   const qrValue = useMemo(() => row.ref || "", [row]);
 
+  const toTitleCase = (text) => {
+    if (!text) return "";
+    return text
+      .toLowerCase()
+      .split(" ")
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  };
+
   return (
     <>
       <style>
@@ -21,32 +30,46 @@ export default function PreviewModal({ isOpen, onClose, data }) {
           }
 
           @media print {
-            body { background: white; }
-            .print-hide { display: none !important; }
+            body * {
+              visibility: hidden !important;
+            }
+
+            #print-document, 
+            #print-document * {
+              visibility: visible !important;
+            }
+
             #print-document {
-              position: fixed;
-              top: 0;
-              left: 0;
+              position: fixed !important;
+              left: 0 !important;
+              top: 0 !important;
               width: 210mm !important;
               height: 297mm !important;
-              box-shadow: none !important;
               margin: 0 !important;
-              padding: 1in !important; 
-              transform: scale(1) !important; /* Reset scale for actual printing */
+              /* 0.5in top/bottom, 0.8in left/right */
+              padding: 0.5in 0.8in !important; 
+              background: white !important;
+              box-shadow: none !important;
+              border: none !important;
+              transform: none !important;
+            }
+
+            .print-hide, .fixed.inset-0 {
+              background: transparent !important;
             }
           }
 
-          /* Mobile Preview Scaling */
-          @media (max-width: 800px) {
+          @media screen and (max-width: 800px) {
             .paper-preview-container {
-              transform: scale(0.45); /* Scales the A4 sheet to fit mobile screens */
+              transform: scale(0.45);
               transform-origin: top center;
-              margin-bottom: -150mm; /* Adjusts layout flow since scale doesn't change element bounds */
+              margin-bottom: -150mm;
             }
           }
-          @media (max-width: 500px) {
+          @media screen and (max-width: 500px) {
             .paper-preview-container {
               transform: scale(0.38);
+              transform-origin: top center;
               margin-bottom: -180mm;
             }
           }
@@ -55,13 +78,12 @@ export default function PreviewModal({ isOpen, onClose, data }) {
 
       <div className="fixed inset-0 z-[100] bg-slate-900/98 backdrop-blur-md overflow-y-auto overflow-x-hidden flex flex-col items-center font-sans pb-20">
         
-        {/* Action Bar - Mobile Optimized */}
         <div className="sticky top-0 w-full z-10 bg-slate-900/80 p-4 border-b border-white/10 flex justify-between items-center print-hide">
           <div className="flex items-center gap-2 text-white/80">
             <Shield size={16} className="text-emerald-500" />
             <div className="leading-tight">
-              <p className="text-[10px] font-bold uppercase tracking-widest">Preview Mode</p>
-              <p className="text-[8px] opacity-60">ID: {row.ref}</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest">Official Preview</p>
+              <p className="text-[8px] opacity-60">REF: {row.ref}</p>
             </div>
           </div>
 
@@ -70,7 +92,7 @@ export default function PreviewModal({ isOpen, onClose, data }) {
               onClick={() => window.print()}
               className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-[10px] font-black uppercase tracking-tighter flex items-center gap-2 transition-all"
             >
-              <Printer size={14} /> Print
+              <Printer size={14} /> Print Document
             </button>
             <button
               onClick={onClose}
@@ -81,33 +103,35 @@ export default function PreviewModal({ isOpen, onClose, data }) {
           </div>
         </div>
 
-        {/* Scaled Wrapper for Mobile */}
         <div className="paper-preview-container transition-transform duration-500 ease-in-out mt-4 md:mt-10">
           
-          {/* Actual A4 Paper Document */}
           <div
             id="print-document"
-            className="bg-white w-[210mm] min-h-[297mm] shadow-[0_0_50px_rgba(0,0,0,0.5)] flex flex-col px-[1in] py-[1in] relative"
+            /* Updated Tailwind padding: py-0.5in px-0.8in */
+            className="bg-white w-[210mm] min-h-[297mm] shadow-[0_0_50px_rgba(0,0,0,0.5)] flex flex-col px-[0.8in] py-[0.5in] relative"
             style={{ 
               fontFamily: '"Times New Roman", Times, serif', 
               color: '#000',
               lineHeight: '1.5' 
             }}
           >
-            {/* Official Header */}
-            <div className="flex items-center justify-between mb-8 border-b-2 border-black pb-4">
-              <img src={CHED} alt="CHED" className="h-20 w-auto object-contain" />
+            {/* Header */}
+            <div className="flex items-center justify-between mb-8">
+              <img src={CHED} alt="CHED" className="h-25 w-auto object-contain" />
               
               <div className="text-center flex-1 mx-4">
                 <p className="text-[15px] leading-tight text-left">Republic of the Philippines</p>
                 <p className="text-[15px] font-bold uppercase leading-tight text-left">Office of the President</p>
+                
+                <div className="border-t border-black my-1 w-full"></div>
+                
                 <h1 className="text-[20px] font-bold uppercase text-left">Commission on Higher Education</h1>
               </div>
 
-              <img src={BAGONGPILIPINAS} alt="Bagong Pilipinas" className="h-20 w-auto object-contain" />
+              <img src={BAGONGPILIPINAS} alt="Bagong Pilipinas" className="h-25 w-auto object-contain" />
             </div>
 
-            {/* Document Type & Reference */}
+            {/* Reference */}
             <div className="mb-8">
               <h2 className="text-[15px] font-bold uppercase tracking-tight">
                 Transmittal from the Office of the Commissioner
@@ -115,14 +139,14 @@ export default function PreviewModal({ isOpen, onClose, data }) {
               <p className="text-[13px] italic font-serif">Reference No. {row.ref}</p>
             </div>
 
-            {/* Formal Metadata */}
+            {/* Metadata */}
             <div className="space-y-3 mb-10 text-[15px]">
               <div className="grid grid-cols-[100px_20px_1fr] items-start">
                 <span className="font-bold">TO</span>
                 <span>:</span>
                 <div className="font-bold uppercase leading-snug">
                   <p>{row.to}</p>
-                  {row.charge && <p className="text-[13px] font-normal normal-case italic mt-1">{row.charge}</p>}
+                  {row.charge && (<p className="text-[13px] font-normal normal-case mt-1">{toTitleCase(row.charge)}</p>)}
                 </div>
               </div>
 
@@ -158,7 +182,7 @@ export default function PreviewModal({ isOpen, onClose, data }) {
 
             <div className="border-t border-black mb-8 opacity-20"></div>
 
-            {/* Body Content */}
+            {/* Body */}
             <div className="text-[15px] flex-1">
               <p className="italic font-bold mb-6">Maayong Adlaw!</p>
               <div className="text-justify whitespace-pre-line" style={{ textAlignLast: 'left' }}>
@@ -167,11 +191,11 @@ export default function PreviewModal({ isOpen, onClose, data }) {
               <p className="mt-8 font-bold">Daghang salamat!</p>
             </div>
 
-            {/* Formal Footer with QR */}
-            <div className="mt-auto pt-10">
+            {/* Footer */}
+            <div className="mt-auto pt-6">
               <div className="flex justify-end mb-6">
                 <div className="flex flex-col items-center">
-                  <QRCodeCanvas value={qrValue} size={90} level="H" />
+                  <QRCodeCanvas value={qrValue} size={80} level="H" />
                   <span className="text-[9px] font-bold uppercase mt-2 tracking-tighter opacity-70">
                     Electronic Verification Link
                   </span>
@@ -179,9 +203,8 @@ export default function PreviewModal({ isOpen, onClose, data }) {
               </div>
 
               <div className="border-t border-black pt-4 text-[10px] leading-relaxed italic opacity-80">
-                <p className="font-bold not-italic">Higher Education Development Center Building</p>
-                <p>C.P. Garcia Ave., UP Campus, Diliman, Quezon City, Philippines</p>
-                <p>Website: www.ched.gov.ph | Email: commissioner@ched.gov.ph</p>
+                <p className="text-center not-italic">Higher Education Development Center Building, C.P. Garcia Ave., UP Campus, Diliman, Quezon City, Philippines</p>
+                <p className="text-center">Tel. No. (02) 8441 117 | Website: www.ocdra.vercel.app | Email: commissionerapag@ched.gov.ph | FB: www.facebook.com/ocdra3</p>
               </div>
             </div>
           </div>
