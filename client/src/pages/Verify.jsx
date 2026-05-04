@@ -68,6 +68,19 @@ export default function Verify() {
     }
   };
 
+  const stopScanner = async () => {
+    if (scannerRef.current) {
+      try {
+        if (scannerRef.current.isScanning) {
+          await scannerRef.current.stop();
+        }
+      } catch (err) {
+        console.warn("Scanner stop warning:", err);
+      }
+      scannerRef.current = null;
+    }
+  };
+
   useEffect(() => {
     let mounted = true;
 
@@ -76,12 +89,9 @@ export default function Verify() {
         const scanner = new Html5Qrcode("reader");
         scannerRef.current = scanner;
 
-        const devices = await Html5Qrcode.getCameras();
-
-        if (!devices.length || !mounted) return;
-
+        // Constraint updated to force Rear Camera (environment)
         await scanner.start(
-          devices[0].id,
+          { facingMode: "environment" },
           { fps: 10, qrbox: { width: 250, height: 250 } },
           async (decodedText) => {
             if (!mounted) return;
@@ -96,7 +106,7 @@ export default function Verify() {
           () => {}
         );
       } catch (err) {
-        console.log(err);
+        console.log("Scanner start error:", err);
       }
     };
 
@@ -104,18 +114,9 @@ export default function Verify() {
 
     return () => {
       mounted = false;
+      stopScanner();
     };
   }, [openScanner]);
-
-  const stopScanner = async () => {
-    if (scannerRef.current) {
-      try {
-        await scannerRef.current.stop();
-      } catch {}
-
-      scannerRef.current = null;
-    }
-  };
 
   const cancelScan = async () => {
     await stopScanner();
